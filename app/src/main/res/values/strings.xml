@@ -1,0 +1,11 @@
+<resources>
+<string name="app_name">Time\'s Up!</string>
+<string name="image_description_hourglass">Hourglass</string>
+<string name="fullTime">10:00</string>
+<string name="playCmd">Play</string>
+<string name="pauseCmd">Pause</string>
+<string name="stopCmd">Stop</string>
+<string name="restartCmd">Restart</string>
+<string name="notificationName">Hourglass</string>
+<string name="descriptionText">Channel for Hourglass Notifications</string>
+</resources>
