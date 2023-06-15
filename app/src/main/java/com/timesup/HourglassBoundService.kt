@@ -14,8 +14,6 @@ import android.os.Build
 
 class HourglassBoundService : Service() {
 
-    private val CHANNEL_ID = "hourglass_channel"
-    private val NOTIFICATION_ID = 2
     private val binder : IBinder = HourglassBinder()
     private var countDownTimer: CountDownTimer? = null
     private var remainingTime: Long = MainActivity.TIMER_DURATION
@@ -29,12 +27,14 @@ class HourglassBoundService : Service() {
     override fun onCreate() {
         super.onCreate()
 
+        createNotificationChannel()
+
         remainingTime = getSharedPreferences("MyPreferences", MODE_PRIVATE).getLong("remainingTime", MainActivity.TIMER_DURATION)
 
         val notificationBuilder: Notification.Builder =
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
                 Notification.Builder(applicationContext, CHANNEL_ID)
-            else  // Deprecation warning left on purpose for educational reasons
+            else  // Deprecation warning (API 26)
                 Notification.Builder(applicationContext)
 
         notificationBuilder.setContentTitle("Foreground")
@@ -81,7 +81,7 @@ class HourglassBoundService : Service() {
     }
 
     fun createNotificationChannel() {
-        // Verifying Android Version (>= 8)
+        // 0nly on API level 26+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val name = getString(R.string.notificationName)
             val descriptionText = getString(R.string.descriptionText)
@@ -100,7 +100,7 @@ class HourglassBoundService : Service() {
         val notificationBuilder: Notification.Builder =
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
                 Notification.Builder(applicationContext, CHANNEL_ID)
-            else  // Deprecation warning left on purpose for educational reasons
+            else  // Deprecation warning
                 Notification.Builder(applicationContext)
 
         notificationBuilder.setSmallIcon(R.drawable.ic_launcher_foreground)
@@ -128,4 +128,10 @@ class HourglassBoundService : Service() {
         stopTimer()
         return super.onUnbind(intent)
     }
+
+   companion object{
+       private const val CHANNEL_ID = "timesUpChannel"
+       private const val NOTIFICATION_ID = 1
+   }
+    
 }

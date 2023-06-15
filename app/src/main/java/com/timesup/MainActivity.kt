@@ -1,5 +1,6 @@
 package com.timesup
 
+import android.Manifest
 import android.content.Context
 import android.hardware.Sensor
 import android.hardware.SensorEvent
@@ -19,6 +20,9 @@ import android.os.*
 import android.content.ComponentName
 import android.content.ServiceConnection
 import android.content.Intent
+import androidx.core.content.ContextCompat
+import androidx.core.content.PermissionChecker
+import android.app.ActivityManager
 
 class MainActivity : AppCompatActivity(), SensorEventListener {
 
@@ -41,9 +45,6 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
     private lateinit var imgBlackMargin : ImageView
     private lateinit var btnPlay : Button
     private lateinit var tvTime : TextView
-
-    //Progress bar-related variables
-
 
     //Service-related variables
     private lateinit var hourglassService: HourglassBoundService
@@ -111,6 +112,12 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
             rotation = windowManager.defaultDisplay.rotation
         }
 
+        // Request permission to post notifications for API >= 33
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PermissionChecker.PERMISSION_GRANTED)
+                requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), REQUEST_CODE)
+        }
+
         //Connection to the service
         val intent = Intent(this, HourglassBoundService::class.java)
         bindService(intent, connection, Context.BIND_AUTO_CREATE)
@@ -131,6 +138,19 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
                     btnPlay.text = getString(R.string.playCmd)
                     updateProgress(0f)
                 }
+            }
+        }
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+
+        if (requestCode == REQUEST_CODE) {
+            if (grantResults.isNotEmpty() && grantResults[0] == PermissionChecker.PERMISSION_GRANTED) {
+                Log.i("MainActivity", "Permesso per le notifiche concesso.")
+            } else {
+                (getSystemService(ACTIVITY_SERVICE) as ActivityManager).clearApplicationUserData()
+                Log.i("MainActivity", "Permesso per le notifiche negato.")
             }
         }
     }
@@ -253,5 +273,6 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
     companion object {
         const val TIMER_DURATION: Long = 10 * 60 * 1000
         const val COUNT_DOWN_INTERVAL : Long = 1000
+        private const val REQUEST_CODE = 1
     }
 }
