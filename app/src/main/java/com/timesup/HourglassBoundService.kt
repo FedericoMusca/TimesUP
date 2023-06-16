@@ -21,6 +21,7 @@ class HourglassBoundService : Service() {
     private var isFirstReverseCall : Boolean = true
 
     override fun onBind(intent: Intent): IBinder {
+        Log.e("HourglassService", "onBind called")
         return binder
     }
 
@@ -123,6 +124,7 @@ class HourglassBoundService : Service() {
     }
 
     override fun onUnbind(intent: Intent?): Boolean {
+        Log.e("HourglassService", "onUnbind called")
         //Application has been closed
         setPreferences()
         stopTimer()

@@ -211,9 +211,19 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
     override fun onResume() {
         super.onResume()
         sensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_NORMAL)
+        Log.e("MainActivity", "onResumeCalled")
+
+        //Re-opening activity after background
+        if(isBound) {
+            hourglassService.setPreferences()
+            hourglassService.stopTimer()
+            getPreferences()
+            startCountdownTimer()
+        }
     }
 
     override fun onPause() {
+        Log.e("MainActivity", "onPauseCalled")
         super.onPause()
         sensorManager.unregisterListener(this)
 
@@ -268,6 +278,11 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
 
     override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
         Log.d("MainActivity", "onAccuracyChanged: $sensor, accuracy: $accuracy")
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        Log.e("MainActivity", "onDestroyCalled")
     }
 
     companion object {
