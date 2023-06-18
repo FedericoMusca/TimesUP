@@ -23,12 +23,19 @@ import android.content.Intent
 import androidx.core.content.ContextCompat
 import androidx.core.content.PermissionChecker
 import android.app.ActivityManager
+import kotlin.concurrent.timer
 
+
+/**
+ *  Main activity of the application
+ *  It shows the timer and the UI elements, managing orientation changes through the sensor
+ */
 class MainActivity : AppCompatActivity(), SensorEventListener {
 
     // Timer-related variables and constants
     private lateinit var countDownTimer: CountDownTimer
     private var remainingTime : Long = TIMER_DURATION
+    private var timerIsRunning : Boolean = true
 
     // Sensor-related variables
     private lateinit var sensorManager: SensorManager
@@ -78,7 +85,8 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
             // Create the notification channel
             hourglassService.createNotificationChannel()
 
-            startCountdownTimer()
+            if(timerIsRunning)
+                startCountdownTimer()
         }
 
         override fun onServiceDisconnected(name: ComponentName?) {
@@ -127,16 +135,20 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
             when (btnPlay.text) {
                 "Play" -> {
                     startCountdownTimer()
+                    timerIsRunning = true
                 }
                 "Pause" -> {
                     countDownTimer.cancel()
                     btnPlay.text = getString(R.string.restartCmd)
+                    timerIsRunning = false
+
                 }
                 else -> {
                     tvTime.text = getString(R.string.fullTime)
                     remainingTime = TIMER_DURATION
                     btnPlay.text = getString(R.string.playCmd)
                     updateProgress(0f)
+                    timerIsRunning = false
                 }
             }
         }
@@ -147,14 +159,17 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
 
         if (requestCode == REQUEST_CODE) {
             if (grantResults.isNotEmpty() && grantResults[0] == PermissionChecker.PERMISSION_GRANTED) {
-                Log.i("MainActivity", "Permesso per le notifiche concesso.")
+                Log.e("MainActivity", "Permesso per le notifiche concesso.")
             } else {
                 (getSystemService(ACTIVITY_SERVICE) as ActivityManager).clearApplicationUserData()
-                Log.i("MainActivity", "Permesso per le notifiche negato.")
+                Log.e("MainActivity", "Permesso per le notifiche negato.")
             }
         }
     }
 
+    /**
+     * Retrieve the saved preferences from SharedPreferences
+     */
     private fun getPreferences(){
         val preferences = getSharedPreferences("MyPreferences", MODE_PRIVATE)
         remainingTime = preferences.getLong("remainingTime", TIMER_DURATION)
@@ -162,7 +177,9 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
         isFirstReverseCall = preferences.getBoolean("isFirstReverseCall", true)
     }
 
-    // Start the countdown timer
+    /**
+     * Start the countdown timer
+     */
     private fun startCountdownTimer() {
         countDownTimer = object : CountDownTimer(remainingTime, COUNT_DOWN_INTERVAL) {
             override fun onTick(millisUntilFinished: Long) {
@@ -181,6 +198,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
                 remainingTime = TIMER_DURATION
                 tvTime.text = getString(R.string.fullTime)
                 btnPlay.text = getString(R.string.restartCmd)
+                timerIsRunning = true
 
                 // Create the notification
                 hourglassService.buildNotification()
@@ -189,7 +207,10 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
         btnPlay.text = getString(R.string.pauseCmd)
     }
 
-    // Update the progress bar based on the given percentage
+    /**
+     * Update the progress bar based on the given percentage
+     * @param percentage The percentage of time passed
+     */
     private fun updateProgress(percentage: Float) {
         val topLayoutParams = imgTopProgressBar.layoutParams as ViewGroup.MarginLayoutParams
         val bottomLayoutParams = imgBottomProgressBar.layoutParams as ViewGroup.MarginLayoutParams
@@ -231,7 +252,8 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
             hourglassService.setRemainingTime(remainingTime)
             hourglassService.setFirstPortraitCall(isFirstPortraitCall)
             hourglassService.setFirstReverseCall(isFirstReverseCall)
-            hourglassService.startTimer()
+            if(timerIsRunning)
+                hourglassService.startTimer()
             countDownTimer.cancel()
         }
     }
