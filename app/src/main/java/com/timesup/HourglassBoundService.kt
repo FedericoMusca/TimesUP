@@ -16,7 +16,6 @@ import android.os.Build
  * Service that manages the background features.
  * It also shows notifications for Time's Up! application.
  */
-
 class HourglassBoundService : Service() {
 
     private val binder : IBinder = HourglassBinder()
@@ -173,5 +172,4 @@ class HourglassBoundService : Service() {
        private const val CHANNEL_ID = "timesUpChannel"
        private const val NOTIFICATION_ID = 1
    }
-    
 }

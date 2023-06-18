@@ -25,7 +25,6 @@ import androidx.core.content.PermissionChecker
 import android.app.ActivityManager
 import kotlin.concurrent.timer
 
-
 /**
  *  Main activity of the application
  *  It shows the timer and the UI elements, managing orientation changes through the sensor
