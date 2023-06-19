@@ -25,7 +25,6 @@ class HourglassBoundService : Service() {
     private var isFirstReverseCall : Boolean = true
 
     override fun onBind(intent: Intent): IBinder {
-        Log.e("HourglassService", "onBind called")
         return binder
     }
 
@@ -66,7 +65,7 @@ class HourglassBoundService : Service() {
 
     /**
      * Sets the value indicating if the first portrait call has been made.
-     * @param boolValue The boolean value.
+     * @param boolValue The boolean value to set the variable.
      */
     fun setFirstPortraitCall(boolValue: Boolean){
         isFirstPortraitCall = boolValue
@@ -74,7 +73,7 @@ class HourglassBoundService : Service() {
 
     /**
      * Sets the value indicating if the first reverse call has been made.
-     * @param boolValue The boolean value.
+     * @param boolValue The boolean value to set the variable.
      */
     fun setFirstReverseCall(boolValue: Boolean){
         isFirstReverseCall = boolValue
@@ -153,7 +152,6 @@ class HourglassBoundService : Service() {
     fun setPreferences(){
         val preferences = getSharedPreferences("MyPreferences", MODE_PRIVATE)
         val editor = preferences.edit()
-        Log.e("HourglassService", "setPreferences called with $remainingTime")
         editor.putLong("remainingTime", remainingTime)
         editor.putBoolean("isFirstPortraitCall", isFirstPortraitCall)
         editor.putBoolean("isFirstReverseCall", isFirstReverseCall)
@@ -161,7 +159,6 @@ class HourglassBoundService : Service() {
     }
 
     override fun onUnbind(intent: Intent?): Boolean {
-        Log.e("HourglassService", "onUnbind called")
         //Application has been closed
         setPreferences()
         stopTimer()

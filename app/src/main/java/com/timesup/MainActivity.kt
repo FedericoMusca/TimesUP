@@ -8,7 +8,6 @@ import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.os.Bundle
 import android.os.CountDownTimer
-import android.util.Log
 import android.view.Surface
 import android.view.View
 import android.view.ViewGroup
@@ -23,7 +22,6 @@ import android.content.Intent
 import androidx.core.content.ContextCompat
 import androidx.core.content.PermissionChecker
 import android.app.ActivityManager
-import kotlin.concurrent.timer
 
 /**
  *  Main activity of the application
@@ -84,8 +82,8 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
             // Create the notification channel
             hourglassService.createNotificationChannel()
 
-            if(timerIsRunning)
-                startCountdownTimer()
+            // Start the countdown timer
+            startCountdownTimer()
         }
 
         override fun onServiceDisconnected(name: ComponentName?) {
@@ -94,7 +92,6 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        Log.e("MainActivity", "onCreate")
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
@@ -157,11 +154,12 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
 
         if (requestCode == REQUEST_CODE) {
+            // User accepted the permission
             if (grantResults.isNotEmpty() && grantResults[0] == PermissionChecker.PERMISSION_GRANTED) {
-                Log.e("MainActivity", "Permesso per le notifiche concesso.")
+                // Do nothing: application correctly in use
             } else {
+                // User denied the permission
                 (getSystemService(ACTIVITY_SERVICE) as ActivityManager).clearApplicationUserData()
-                Log.e("MainActivity", "Permesso per le notifiche negato.")
             }
         }
     }
@@ -197,7 +195,6 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
                 remainingTime = TIMER_DURATION
                 tvTime.text = getString(R.string.fullTime)
                 btnPlay.text = getString(R.string.restartCmd)
-                timerIsRunning = true
 
                 // Create the notification
                 hourglassService.buildNotification()
@@ -209,21 +206,35 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
     /**
      * Update the progress bar based on the given percentage
      * @param percentage The percentage of time passed
+     *
+     * NOTE: All the calculations were done manually:
+     *
+     * - the height of the black borders at the top and bottom
+     *   of the hourglass is 1/10 of the height of the hourglass itself
+     *   @see BORDERS_HEIGHT
+     *
+     * - The distance between the center of the hourglass and the vertex
+     *   that allows the sand to flow is equal to 1/40 of the height of the hourglass
+     *   @see DISTANCE_FROM_CENTER
+     *
+     * - The maximum height of the sand in the globes is 3/8 of the height of the hourglass
+     *   (1/2-1/10-1/40 = 3/8)
+     *   @see MAX_PROGRESS
      */
     private fun updateProgress(percentage: Float) {
         val topLayoutParams = imgTopProgressBar.layoutParams as ViewGroup.MarginLayoutParams
         val bottomLayoutParams = imgBottomProgressBar.layoutParams as ViewGroup.MarginLayoutParams
 
         // Calculate margins to adapt the progress bars to the layout
-        topLayoutParams.topMargin = imgBlackMargin.height/10
-        bottomLayoutParams.topMargin = imgBlackMargin.height*21/40
+        topLayoutParams.topMargin = imgBlackMargin.height/BORDERS_HEIGHT
+        bottomLayoutParams.topMargin = (imgBlackMargin.height*(1/2f+DISTANCE_FROM_CENTER)).toInt()
 
         // Calculate heights and widths for the progress bars
-        imgTopProgressBar.layoutParams.height = (percentage * (imgBlackMargin.height*3/8)).toInt()
+        imgTopProgressBar.layoutParams.height = (percentage * (imgBlackMargin.height*MAX_PROGRESS)).toInt()
         imgTopProgressBar.layoutParams.width = imgBlackMargin.width
         imgTopProgressBar.requestLayout()
 
-        imgBottomProgressBar.layoutParams.height = ((imgBlackMargin.height*3/8) - (percentage*(imgBlackMargin.height*3/8))).toInt()
+        imgBottomProgressBar.layoutParams.height = ((imgBlackMargin.height*MAX_PROGRESS) - (percentage*(imgBlackMargin.height*MAX_PROGRESS))).toInt()
         imgBottomProgressBar.layoutParams.width = imgBlackMargin.width
         imgBottomProgressBar.requestLayout()
     }
@@ -231,7 +242,8 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
     override fun onResume() {
         super.onResume()
         sensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_NORMAL)
-        Log.e("MainActivity", "onResumeCalled")
+        //Run the timer
+        timerIsRunning = true
 
         //Re-opening activity after background
         if(isBound) {
@@ -243,10 +255,10 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
     }
 
     override fun onPause() {
-        Log.e("MainActivity", "onPauseCalled")
         super.onPause()
         sensorManager.unregisterListener(this)
 
+        //Saving preferences
         if(isBound) {
             hourglassService.setRemainingTime(remainingTime)
             hourglassService.setFirstPortraitCall(isFirstPortraitCall)
@@ -298,17 +310,15 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
     }
 
     override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
-        Log.d("MainActivity", "onAccuracyChanged: $sensor, accuracy: $accuracy")
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        Log.e("MainActivity", "onDestroyCalled")
+        // Do nothing, accuracy changed
     }
 
     companion object {
         const val TIMER_DURATION: Long = 10 * 60 * 1000
         const val COUNT_DOWN_INTERVAL : Long = 1000
+        private const val BORDERS_HEIGHT : Int = 10
+        private const val DISTANCE_FROM_CENTER : Float = 1/40f
+        private const val MAX_PROGRESS : Float = 3/8f
         private const val REQUEST_CODE = 1
     }
 }
