@@ -156,8 +156,10 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
         if (requestCode == REQUEST_CODE) {
             // User accepted the permission
             if (grantResults.isNotEmpty() && grantResults[0] == PermissionChecker.PERMISSION_GRANTED) {
+                countDownTimer.cancel()
                 // Do nothing: application correctly in use
             } else {
+                countDownTimer.cancel()
                 // User denied the permission
                 (getSystemService(ACTIVITY_SERVICE) as ActivityManager).clearApplicationUserData()
             }
