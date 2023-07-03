@@ -86,7 +86,6 @@ class HourglassBoundService : Service() {
         countDownTimer = object : CountDownTimer(remainingTime, MainActivity.COUNT_DOWN_INTERVAL) {
             override fun onTick(millisUntilFinished: Long) {
                 remainingTime = millisUntilFinished
-                Log.e("Service", "onTick $remainingTime")
             }
 
             /**
