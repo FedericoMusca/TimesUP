@@ -1,5 +1,4 @@
 # Time's UP! - Federico Muscarà, MAT 2001594
-Consegna progetto B, assegnato come prova d’esame dell’insegnamento “Elementi di programmazione di sistemi embedded”
 # Funzionalità
 L'applicazione fornisce una clessidra virtuale di 10 minuti, facile da utilizzare grazie a un'interfaccia semplice e minimale.
 Le funzionalità principali offerte sono:
